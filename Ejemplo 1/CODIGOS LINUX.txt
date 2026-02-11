@@ -1,0 +1,9 @@
+1) Para quedar en Usuario: ~$   -> Dar cd ~
+
+2) Entrar en nano se sale con : control X
+
+3) Para salir del Kali Linux para volver al powershell : exit o logout
+
+4) Apaga WSL : wsl --shutdown
+
+5) Entrar a Kali Linux como usuario samuel: wsl -d kali-linux -u samuel
