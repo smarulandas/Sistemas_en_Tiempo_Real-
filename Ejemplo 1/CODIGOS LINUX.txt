@@ -7,3 +7,5 @@
 4) Apaga WSL : wsl --shutdown
 
 5) Entrar a Kali Linux como usuario samuel: wsl -d kali-linux -u samuel
+
+"Comprobación de nueva actualización"
