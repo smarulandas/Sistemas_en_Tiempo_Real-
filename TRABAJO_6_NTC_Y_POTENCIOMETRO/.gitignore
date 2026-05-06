@@ -1,0 +1,13 @@
+# Carpeta generada al compilar con ESP-IDF.
+build/
+
+# Archivos temporales de CMake/Ninja.
+sdkconfig.old
+dependencies.lock
+
+# Archivos temporales del sistema operativo.
+.DS_Store
+Thumbs.db
+
+# Configuración local de VS Code.
+.vscode/
