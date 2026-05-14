@@ -1,0 +1,15 @@
+idf_component_register(
+    SRCS
+        "main.c"
+        "led_rgb.c"
+        "analog.c"
+        "button.c"
+        "uart_cmd.c"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        esp_driver_gpio
+        esp_driver_ledc
+        esp_driver_uart
+        esp_adc
+)
