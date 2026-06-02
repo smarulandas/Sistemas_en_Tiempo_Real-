@@ -1,353 +1,287 @@
-# Trabajo 7 - ESP32-C6: NTC, Potenciómetro y LED RGB
+# Parcial 1 - Sistemas en Tiempo Real
 
-Este proyecto fue realizado para la materia **Sistemas en Tiempo Real** usando un **ESP32-C6**.  
-El sistema integra un sensor de temperatura **NTC**, un **potenciómetro**, un **botón**, comunicación por **UART** y dos **LED RGB de ánodo común**.
+## Descripción general
 
-El objetivo principal fue controlar dos LED RGB:
+Este proyecto corresponde al parcial de la asignatura **Sistemas en Tiempo Real**.
+Se desarrolló sobre una tarjeta **ESP32-C6** usando **ESP-IDF**.
 
-1. Un LED RGB que cambia sus colores según la temperatura medida por un NTC.
-2. Un LED RGB configurable mediante potenciómetro y botón, guardando la intensidad de cada color.
+El sistema permite leer temperatura mediante un sensor NTC, controlar LEDs RGB mediante PWM, recibir comandos por UART, cambiar unidades de temperatura con un botón físico y usar un potenciómetro para definir un umbral de activación de un LED rojo.
 
----
-
-## Requisitos 
-
-### 1. LED RGB controlado por temperatura
-
-Se debía usar un **NTC** para medir temperatura y encender los colores del LED RGB según rangos configurables.
-
-Los rangos iniciales solicitados fueron:
-
-| Color | Rango de temperatura |
-|---|---|
-| Red | 5 °C a 20 °C |
-| Blue | 10 °C a 30 °C |
-| Green | 15 °C a 40 °C |
-
-Como los rangos se cruzan, pueden encenderse varios colores al mismo tiempo.
-
-Ejemplos:
-
-| Temperatura | Resultado |
-|---:|---|
-| 5 °C | Red |
-| 10 °C | Red + Blue |
-| 17 °C | Red + Blue + Green |
-| 24 °C | Blue + Green |
-| 35 °C | Green |
-
-También se pidió poder configurar por UART:
-
-- Límite mínimo de cada color.
-- Límite máximo de cada color.
-- Intensidad de cada color de 0% a 100%.
+El proyecto fue organizado por módulos para mantener el código más claro, reutilizable y fácil de explicar.
 
 ---
 
-### 2. LED RGB configurable con potenciómetro y botón
+## Objetivos del proyecto
 
-El segundo LED RGB funciona mediante una máquina de estados.
+El trabajo debía cumplir los siguientes puntos:
 
-Cada vez que se presiona el botón, el sistema cambia de estado:
+1. Imprimir la temperatura cada X segundos, donde X se puede cambiar mediante un comando UART.
+2. Cambiar la unidad de impresión de temperatura entre °C, °F y Kelvin mediante comando UART.
+3. Encender un LED RGB1 según rangos de temperatura:
 
-1. `CONFIG_RED`: el potenciómetro controla la intensidad roja.
-2. `CONFIG_BLUE`: el potenciómetro controla la intensidad azul.
-3. `CONFIG_GREEN`: el potenciómetro controla la intensidad verde.
-4. `SHOW_COLOR`: se muestra la mezcla final de los tres valores guardados.
-
-Al cambiar de estado, el valor configurado queda guardado.
-
-Además, el monitor serial muestra el porcentaje de intensidad configurado para cada color.
-
----
-
-## Componentes utilizados
-
-- ESP32-C6
-- 1 NTC de 10 kΩ
-- 1 resistencia fija de 10 kΩ para el divisor del NTC
-- 1 potenciómetro de 10 kΩ
-- 1 botón pulsador
-- 2 LED RGB de ánodo común
-- Resistencias para los LED RGB
-- Protoboard
-- Cables
+   * Rojo entre un valor mínimo y máximo.
+   * Verde entre un valor mínimo y máximo.
+   * Azul entre un valor mínimo y máximo.
+4. Permitir configurar la intensidad de los colores rojo, verde y azul.
+5. Cambiar la unidad de impresión de temperatura usando un botón físico.
+6. Usar un potenciómetro para seleccionar un umbral entre 0 y 100.
+7. Leer el umbral del potenciómetro mediante un comando UART.
+8. Encender un LED rojo según el umbral seleccionado.
+9. Mantener el código organizado, comentado y sin variables globales de estado.
 
 ---
 
-## Conexiones principales
+## Funcionamiento general
 
-| Elemento | Pin usado |
-|---|---|
-| Potenciómetro | GPIO0 |
-| NTC | GPIO1 |
-| Botón | GPIO7 |
-| LED RGB configurable - Rojo | GPIO4 |
-| LED RGB configurable - Verde | GPIO5 |
-| LED RGB configurable - Azul | GPIO6 |
-| LED RGB temperatura - Rojo | GPIO10 |
-| LED RGB temperatura - Verde | GPIO18 |
-| LED RGB temperatura - Azul | GPIO19 |
+El programa trabaja con dos tareas principales:
 
-Los LED RGB usados son de **ánodo común**, por lo tanto la pata más larga va conectada a **3.3 V**.
+### 1. Tarea de comandos UART
 
-En el código esto se configuró así:
+Esta tarea lee los comandos escritos desde el monitor serial.
+El usuario escribe un comando, presiona ENTER y el programa interpreta la instrucción.
 
-```c
-#define RGB_COMMON_ANODE true
-```
+Los comandos permiten cambiar el periodo de impresión, la unidad de temperatura, los rangos del LED RGB1, las intensidades de color y consultar el umbral del potenciómetro.
+
+### 2. Tarea de control
+
+Esta tarea realiza el funcionamiento principal del sistema:
+
+* Lee la temperatura del sensor NTC.
+* Lee el valor del potenciómetro.
+* Actualiza el LED RGB1 según los rangos de temperatura.
+* Controla el LED rojo asociado al umbral.
+* Revisa si el botón fue presionado.
+* Cambia la unidad de temperatura cuando se presiona el botón.
+* Imprime la temperatura cada cierto tiempo configurable.
 
 ---
 
-## Conexión del NTC
+## Comandos UART disponibles
 
-El NTC se usó en un divisor de tensión junto con una resistencia fija de 10 kΩ.
+Los comandos se escriben desde el monitor serial.
 
-La conexión usada fue:
+### Mostrar ayuda
 
 ```text
-3.3V ---- Resistencia fija 10k ---- GPIO1 ---- NTC 10k ---- GND
+help
 ```
 
-El ESP32-C6 lee el voltaje del punto medio mediante el ADC.
+Muestra la lista de comandos disponibles.
 
----
-
-## Cálculo de temperatura
-
-El ESP32-C6 no mide resistencia directamente.  
-Primero mide el voltaje del divisor del NTC mediante el ADC.
-
-Luego se calcula la resistencia del NTC usando la fórmula del divisor de tensión:
+### Cambiar periodo de impresión
 
 ```text
-R_NTC = R_FIJA × V_ADC / (VCC - V_ADC)
+periodo 5
 ```
 
-Después se usa la ecuación Beta del NTC:
+Configura la impresión de temperatura cada 5 segundos.
+
+### Cambiar unidad de temperatura
 
 ```text
-1/T = 1/T0 + (1/B) × ln(R/R0)
+unidad C
+unidad F
+unidad K
 ```
 
-Donde:
+Permite imprimir la temperatura en Celsius, Fahrenheit o Kelvin.
 
-| Variable | Significado |
-|---|---|
-| T | Temperatura en Kelvin |
-| T0 | Temperatura nominal, 298.15 K |
-| B | Valor Beta del NTC |
-| R | Resistencia calculada del NTC |
-| R0 | Resistencia nominal del NTC, 10 kΩ |
-
-Finalmente, la temperatura se convierte a grados Celsius:
+### Configurar rangos del RGB1
 
 ```text
-°C = K - 273.15
+rgb1_rango red 5 20
+rgb1_rango blue 10 30
+rgb1_rango green 15 40
 ```
 
----
-
-## Configuración del NTC en el código
-
-En `board_config.h` se configuró:
-
-```c
-#define NTC_NOMINAL_RESISTANCE_OHMS     10000.0f
-#define NTC_FIXED_RESISTOR_OHMS         10000.0f
-#define NTC_BETA_VALUE                  3950.0f
-#define NTC_NOMINAL_TEMPERATURE_K       298.15f
-#define ADC_REFERENCE_MV                3300.0f
-```
-
-También se agregó la visualización del voltaje leído en el punto del NTC, para comparar el valor del ADC con el valor medido físicamente con multímetro.
-
----
-
-## Comandos UART implementados
-
-El sistema permite escribir comandos desde el monitor serial.
-
-### Comandos para límites de temperatura
-
-| Comando | Función |
-|---|---|
-| `LIM_MI_R valor` | Cambia el límite mínimo del rojo |
-| `LIM_MA_R valor` | Cambia el límite máximo del rojo |
-| `LIM_MI_B valor` | Cambia el límite mínimo del azul |
-| `LIM_MA_B valor` | Cambia el límite máximo del azul |
-| `LIM_MI_G valor` | Cambia el límite mínimo del verde |
-| `LIM_MA_G valor` | Cambia el límite máximo del verde |
+Con estos comandos se definen los rangos de temperatura para cada color.
 
 Ejemplo:
 
+* Rojo entre 5 °C y 20 °C.
+* Azul entre 10 °C y 30 °C.
+* Verde entre 15 °C y 40 °C.
+
+Si la temperatura está dentro de varios rangos al mismo tiempo, pueden encenderse varios colores simultáneamente.
+
+### Configurar intensidad del RGB1
+
 ```text
-LIM_MI_R 5
-LIM_MA_R 20
+rgb1_int red 80
+rgb1_int blue 60
+rgb1_int green 100
 ```
 
-Eso significa que el rojo se encenderá entre 5 °C y 20 °C.
+Configura la intensidad de cada color del RGB1.
 
----
-
-### Comandos para intensidad del LED de temperatura
-
-| Comando | Función |
-|---|---|
-| `INT_R valor` | Cambia la intensidad del rojo de 0% a 100% |
-| `INT_B valor` | Cambia la intensidad del azul de 0% a 100% |
-| `INT_G valor` | Cambia la intensidad del verde de 0% a 100% |
-
-Ejemplo:
+### Configurar intensidad roja del RGB2
 
 ```text
-INT_B 50
+rgb2_int red 70
 ```
 
-Eso significa que el azul se encenderá al 50% cuando la temperatura esté dentro del rango configurado para Blue.
+Configura la intensidad del canal rojo usado para el indicador de umbral.
 
----
-
-### Comandos de consulta
-
-| Comando | Función |
-|---|---|
-| `HELP` | Muestra la lista de comandos disponibles |
-| `INFO` | Muestra temperatura, voltaje, límites e intensidades |
-| `COLOR` | Muestra los valores guardados del LED controlado por potenciómetro |
-
----
-
-## Funcionamiento del potenciómetro
-
-El potenciómetro se conecta como divisor de tensión:
+### Leer umbral del potenciómetro
 
 ```text
-3.3V ---- Potenciómetro ---- GND
-              |
-            GPIO0
+umbral
 ```
 
-El pin central del potenciómetro entrega un voltaje variable que el ADC convierte a un valor numérico.
+Muestra el valor actual del umbral seleccionado con el potenciómetro.
 
-Ese valor se escala a un porcentaje de intensidad y luego a PWM:
+---
+
+## Lógica del potenciómetro
+
+El potenciómetro se lee mediante el ADC del ESP32-C6.
+El valor leído se convierte a un rango entre 0 y 100.
+
+Ese valor se interpreta como un umbral.
+Luego el programa compara la temperatura actual con ese umbral.
+
+La lógica usada es:
 
 ```text
-0%   → LED apagado
-100% → LED con brillo máximo
+Si temperatura_actual >= umbral
+    Se enciende el LED rojo
+Si temperatura_actual < umbral
+    Se apaga el LED rojo
 ```
 
-El valor configurado se guarda según el estado actual:
-
-| Estado | Color configurado |
-|---|---|
-| CONFIG_RED | Rojo |
-| CONFIG_BLUE | Azul |
-| CONFIG_GREEN | Verde |
-| SHOW_COLOR | Mezcla final |
+De esta forma, el potenciómetro permite modificar físicamente el punto de activación del LED rojo.
 
 ---
 
-## Manejo del botón
+## Botón físico
 
-El botón se conecta así:
+El botón permite cambiar la unidad de impresión de temperatura sin usar comandos UART.
+
+Cada vez que se presiona el botón, la unidad cambia en este orden:
 
 ```text
-GPIO7 ---- Botón ---- GND
-```
-
-Se usa la resistencia interna pull-up del ESP32-C6.
-
-El botón genera una interrupción, pero la interrupción no cambia directamente el estado.  
-En su lugar, envía un evento a una cola de FreeRTOS.  
-Luego una tarea procesa ese evento, aplica antirrebote y cambia al siguiente estado.
-
-Esto permite un diseño más ordenado y evita hacer mucha lógica dentro de la interrupción.
-
----
-
-## Tareas de FreeRTOS
-
-El proyecto usa varias tareas:
-
-| Tarea | Función |
-|---|---|
-| `temperature_task` | Lee el NTC, calcula temperatura y actualiza el LED RGB de temperatura |
-| `color_config_task` | Lee el potenciómetro, procesa el botón y actualiza el LED RGB configurable |
-| `uart_command_task` | Procesa los comandos recibidos por UART |
-| `uart_rx_task` | Lee los caracteres escritos en el monitor serial |
-
----
-
-## Estructura del proyecto
-
-```text
-TRABAJO_6_NTC_Y_POTENCIOMETRO/
-│
-├── README.md
-├── CMakeLists.txt
-├── sdkconfig
-│
-└── main/
-    ├── main.c
-    ├── board_config.h
-    ├── analog.c
-    ├── analog.h
-    ├── button.c
-    ├── button.h
-    ├── led_rgb.c
-    ├── led_rgb.h
-    ├── uart_cmd.c
-    ├── uart_cmd.h
-    └── CMakeLists.txt
+°C -> °F -> K -> °C
 ```
 
 ---
 
-## Descripción de archivos principales
+## LED RGB de ánodo común
 
-| Archivo | Función |
-|---|---|
-| `main.c` | Coordina las tareas, estados, comandos UART y lógica principal |
-| `board_config.h` | Contiene pines, constantes del NTC, rangos iniciales e intensidades |
-| `analog.c/h` | Lee el potenciómetro y el NTC mediante ADC |
-| `led_rgb.c/h` | Controla los LED RGB usando PWM |
-| `button.c/h` | Configura el botón con interrupción |
-| `uart_cmd.c/h` | Recibe y procesa comandos desde el monitor serial |
+Los LEDs RGB usados son de **ánodo común**.
+
+Por esta razón, en la configuración del proyecto se usa:
+
+```c
+#define RGB_ACTIVE_HIGH 0
+```
+
+Esto significa que el LED se enciende con nivel bajo en el GPIO, ya que la pata común del RGB va conectada a 3.3 V.
+
+Conexión general para un RGB de ánodo común:
+
+```text
+Pata común del RGB -> 3.3 V
+Rojo  -> resistencia -> GPIO correspondiente
+Verde -> resistencia -> GPIO correspondiente
+Azul  -> resistencia -> GPIO correspondiente
+```
 
 ---
 
-## Compilación y carga
+## Organización del código
 
-Desde la carpeta del proyecto:
+El proyecto está dividido en varios archivos para separar responsabilidades:
 
-```bash
-idf.py set-target esp32c6
+```text
+main.c
+```
+
+Archivo principal del programa.
+Crea las tareas, inicializa los módulos y conecta toda la lógica del sistema.
+
+```text
+app_commands.c / app_commands.h
+```
+
+Contiene la interpretación de comandos UART.
+
+```text
+analog.c / analog.h
+```
+
+Contiene la lectura del sensor NTC y del potenciómetro mediante ADC.
+
+```text
+rgb_led.c / rgb_led.h
+```
+
+Contiene el control PWM de los LEDs RGB.
+
+```text
+temp_control.c / temp_control.h
+```
+
+Contiene la lógica relacionada con temperatura, unidades y periodo de impresión.
+
+```text
+button_unit.c / button_unit.h
+```
+
+Contiene la lectura del botón físico.
+
+```text
+board_config.h
+```
+
+Contiene la configuración general del hardware, pines, constantes y parámetros iniciales.
+
+---
+
+## Requisitos importantes cumplidos
+
+* Lectura de temperatura con NTC.
+* Impresión de temperatura cada X segundos.
+* Cambio de unidad por UART.
+* Cambio de unidad por botón físico.
+* Control de LED RGB1 por rangos de temperatura.
+* Intensidad configurable para los colores del RGB.
+* Potenciómetro usado como umbral entre 0 y 100.
+* Comando UART para consultar el umbral.
+* Configuración para LEDs RGB de ánodo común.
+* Código separado por módulos.
+* Variables con nombres claros.
+* Sin variables globales de estado para la lógica principal del sistema.
+
+---
+
+## Compilación y ejecución
+
+Para compilar el proyecto:
+
+```powershell
 idf.py build
+```
+
+Para cargarlo en la ESP32-C6:
+
+```powershell
+idf.py flash
+```
+
+Para abrir el monitor serial:
+
+```powershell
+idf.py monitor
+```
+
+También se puede usar:
+
+```powershell
 idf.py flash monitor
 ```
 
 ---
 
-## Resultado final
+## Autor
 
-El proyecto permite:
-
-- Medir temperatura con un NTC.
-- Mostrar la temperatura y el voltaje del NTC en el monitor serial.
-- Encender uno o varios colores del LED RGB según rangos configurables.
-- Cambiar límites de temperatura por UART.
-- Cambiar intensidades de los colores por UART.
-- Configurar otro LED RGB usando potenciómetro y botón.
-- Guardar intensidades de rojo, azul y verde.
-- Mostrar la mezcla final del LED configurado.
-- Mostrar información del sistema en el monitor serial.
-
----
-
-## Nota sobre calibración
-
-Para mejorar la lectura del NTC se comparó el voltaje calculado por el ADC con el voltaje medido físicamente usando un multímetro.  
-El cálculo de temperatura se realiza con la ecuación Beta del NTC, y los parámetros principales de calibración se encuentran en `board_config.h`.
-
-La validación con multímetro permitió comprobar si la lectura del ADC era cercana al voltaje real del divisor.
+Proyecto realizado para la asignatura **Sistemas en Tiempo Real**.
