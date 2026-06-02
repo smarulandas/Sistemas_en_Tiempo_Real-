@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ESP32-C6 Control Center</title>
+
+    <!-- Archivo CSS del proyecto -->
+    <link rel="stylesheet" href="app.css">
+</head>
+
+<body>
+
+    <main class="page-container">
+
+        <!-- Encabezado principal -->
+        <section class="hero-card">
+
+            <div class="hero-info">
+                <p class="eyebrow">ESP32-C6</p>
+
+                <h1>Control Center</h1>
+
+                <p class="hero-description">
+                    Panel web para configurar la conexión WiFi, controlar el LED RGB
+                    y visualizar la temperatura del sistema.
+                </p>
+            </div>
+
+            <div class="status-card">
+                <p class="status-label">Estado del sistema</p>
+                <span class="status-value">Interfaz lista</span>
+            </div>
+
+        </section>
+
+        <!-- Contenido principal -->
+        <section class="dashboard-grid">
+
+            <!-- Tarjeta WiFi -->
+            <article class="card wifi-card">
+
+                <p class="eyebrow">CONECTIVIDAD</p>
+
+                <h2>Configuración WiFi</h2>
+
+                <p class="card-description">
+                    Ingresa el nombre de la red y la contraseña para conectar el ESP32-C6.
+                </p>
+
+                <form id="wifi-form" class="form-card" action="/wifi" method="POST">
+
+                    <label for="ssid">SSID</label>
+                    <input
+                        type="text"
+                        id="ssid"
+                        name="ssid"
+                        placeholder="Nombre de la red WiFi"
+                        required
+                    >
+
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Mínimo 8 caracteres"
+                        minlength="8"
+                        required
+                    >
+
+                    <button type="submit" class="btn btn-primary">
+                        Enviar WiFi
+                    </button>
+
+                </form>
+
+            </article>
+
+            <!-- Tarjeta RGB -->
+            <article class="card rgb-card">
+
+                <p class="eyebrow">CONTROL LED</p>
+
+                <h2>Control RGB</h2>
+
+                <p class="card-description">
+                    Configura la intensidad de cada color usando valores entre 0 y 255.
+                </p>
+
+                <form id="rgb-form" class="form-card" action="/rgb" method="POST">
+
+                    <div class="rgb-inputs">
+
+                        <div class="rgb-field">
+                            <label for="red">R</label>
+                            <input
+                                type="number"
+                                id="red"
+                                name="r"
+                                min="0"
+                                max="255"
+                                placeholder="0"
+                                required
+                            >
+                        </div>
+
+                        <div class="rgb-field">
+                            <label for="green">G</label>
+                            <input
+                                type="number"
+                                id="green"
+                                name="g"
+                                min="0"
+                                max="255"
+                                placeholder="0"
+                                required
+                            >
+                        </div>
+
+                        <div class="rgb-field">
+                            <label for="blue">B</label>
+                            <input
+                                type="number"
+                                id="blue"
+                                name="b"
+                                min="0"
+                                max="255"
+                                placeholder="0"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        Enviar RGB
+                    </button>
+
+                </form>
+
+            </article>
+
+            <!-- Tarjeta temperatura -->
+            <article class="card temperature-card">
+
+                <p class="eyebrow">SENSORES</p>
+
+                <h2>Temperatura</h2>
+
+                <p class="card-description">
+                    Lectura actual del sensor de temperatura conectado al ESP32-C6.
+                </p>
+
+                <div class="temperature-box">
+                    <span class="temperature-label">Temperatura actual</span>
+
+                    <strong id="temperature-value" class="temperature-value">
+                        -- °C
+                    </strong>
+                </div>
+
+            </article>
+
+            <!-- Tarjeta información -->
+            <article class="card info-card">
+
+                <p class="eyebrow">INFORMACIÓN</p>
+
+                <h2>Proyecto</h2>
+
+                <div class="info-list">
+
+                    <div class="info-item">
+                        <span>Placa</span>
+                        <strong>ESP32-C6</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Materia</span>
+                        <strong>Sistemas en Tiempo Real</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Interfaz</span>
+                        <strong>HTML + CSS</strong>
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+    </main>
+
+</body>
+</html>
