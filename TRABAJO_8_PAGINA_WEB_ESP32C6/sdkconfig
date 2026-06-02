@@ -589,14 +589,14 @@ CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
 # CONFIG_ESPTOOLPY_FLASHFREQ_20M is not set
 CONFIG_ESPTOOLPY_FLASHFREQ="80m"
 # CONFIG_ESPTOOLPY_FLASHSIZE_1MB is not set
-CONFIG_ESPTOOLPY_FLASHSIZE_2MB=y
+# CONFIG_ESPTOOLPY_FLASHSIZE_2MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_4MB is not set
-# CONFIG_ESPTOOLPY_FLASHSIZE_8MB is not set
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
 # CONFIG_ESPTOOLPY_FLASHSIZE_16MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_32MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_64MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_128MB is not set
-CONFIG_ESPTOOLPY_FLASHSIZE="2MB"
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
 # CONFIG_ESPTOOLPY_HEADER_FLASHSIZE_UPDATE is not set
 CONFIG_ESPTOOLPY_BEFORE_RESET=y
 # CONFIG_ESPTOOLPY_BEFORE_NORESET is not set
@@ -610,27 +610,16 @@ CONFIG_ESPTOOLPY_MONITOR_BAUD=115200
 #
 # Partition Table
 #
-CONFIG_PARTITION_TABLE_SINGLE_APP=y
+# CONFIG_PARTITION_TABLE_SINGLE_APP is not set
 # CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE is not set
 # CONFIG_PARTITION_TABLE_TWO_OTA is not set
 # CONFIG_PARTITION_TABLE_TWO_OTA_LARGE is not set
-# CONFIG_PARTITION_TABLE_CUSTOM is not set
-CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
-CONFIG_PARTITION_TABLE_FILENAME="partitions_singleapp.csv"
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_two_ota.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions_two_ota.csv"
 CONFIG_PARTITION_TABLE_OFFSET=0x8000
 CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
-
-#
-# Example Configuration
-#
-CONFIG_ESP_WIFI_SSID="myssid"
-CONFIG_ESP_WIFI_PASSWORD="mypassword"
-CONFIG_ESP_WIFI_CHANNEL=1
-CONFIG_ESP_MAX_STA_CONN=4
-CONFIG_ESP_GTK_REKEYING_ENABLE=y
-CONFIG_ESP_GTK_REKEY_INTERVAL=600
-# end of Example Configuration
 
 #
 # Compiler options
@@ -686,6 +675,85 @@ CONFIG_COMPILER_ORPHAN_SECTIONS_WARNING=y
 #
 
 #
+# Driver Configurations
+#
+
+#
+# Legacy TWAI Driver Configurations
+#
+# CONFIG_TWAI_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy TWAI Driver Configurations
+
+#
+# Legacy ADC Driver Configuration
+#
+# CONFIG_ADC_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_ADC_SKIP_LEGACY_CONFLICT_CHECK is not set
+
+#
+# Legacy ADC Calibration Configuration
+#
+# CONFIG_ADC_CALI_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy ADC Calibration Configuration
+# end of Legacy ADC Driver Configuration
+
+#
+# Legacy MCPWM Driver Configurations
+#
+# CONFIG_MCPWM_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_MCPWM_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy MCPWM Driver Configurations
+
+#
+# Legacy Timer Group Driver Configurations
+#
+# CONFIG_GPTIMER_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_GPTIMER_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy Timer Group Driver Configurations
+
+#
+# Legacy RMT Driver Configurations
+#
+# CONFIG_RMT_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_RMT_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy RMT Driver Configurations
+
+#
+# Legacy I2S Driver Configurations
+#
+# CONFIG_I2S_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_I2S_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy I2S Driver Configurations
+
+#
+# Legacy I2C Driver Configurations
+#
+# CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy I2C Driver Configurations
+
+#
+# Legacy PCNT Driver Configurations
+#
+# CONFIG_PCNT_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_PCNT_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy PCNT Driver Configurations
+
+#
+# Legacy SDM Driver Configurations
+#
+# CONFIG_SDM_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_SDM_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy SDM Driver Configurations
+
+#
+# Legacy Temperature Sensor Driver Configurations
+#
+# CONFIG_TEMP_SENSOR_SUPPRESS_DEPRECATE_WARN is not set
+# CONFIG_TEMP_SENSOR_SKIP_LEGACY_CONFLICT_CHECK is not set
+# end of Legacy Temperature Sensor Driver Configurations
+# end of Driver Configurations
+
+#
 # eFuse Bit Manager
 #
 # CONFIG_EFUSE_CUSTOM_TABLE is not set
@@ -714,6 +782,113 @@ CONFIG_ESP_ERR_TO_NAME_LOOKUP=y
 # end of ESP-Driver:GPIO Configurations
 
 #
+# ESP-Driver:GPTimer Configurations
+#
+CONFIG_GPTIMER_ISR_HANDLER_IN_IRAM=y
+# CONFIG_GPTIMER_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_GPTIMER_ISR_CACHE_SAFE is not set
+CONFIG_GPTIMER_OBJ_CACHE_SAFE=y
+# CONFIG_GPTIMER_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:GPTimer Configurations
+
+#
+# ESP-Driver:I2C Configurations
+#
+# CONFIG_I2C_ISR_IRAM_SAFE is not set
+# CONFIG_I2C_ENABLE_DEBUG_LOG is not set
+# CONFIG_I2C_ENABLE_SLAVE_DRIVER_VERSION_2 is not set
+CONFIG_I2C_MASTER_ISR_HANDLER_IN_IRAM=y
+# end of ESP-Driver:I2C Configurations
+
+#
+# ESP-Driver:I2S Configurations
+#
+# CONFIG_I2S_ISR_IRAM_SAFE is not set
+# CONFIG_I2S_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:I2S Configurations
+
+#
+# ESP-Driver:LEDC Configurations
+#
+# CONFIG_LEDC_CTRL_FUNC_IN_IRAM is not set
+# end of ESP-Driver:LEDC Configurations
+
+#
+# ESP-Driver:MCPWM Configurations
+#
+CONFIG_MCPWM_ISR_HANDLER_IN_IRAM=y
+# CONFIG_MCPWM_ISR_CACHE_SAFE is not set
+# CONFIG_MCPWM_CTRL_FUNC_IN_IRAM is not set
+CONFIG_MCPWM_OBJ_CACHE_SAFE=y
+# CONFIG_MCPWM_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:MCPWM Configurations
+
+#
+# ESP-Driver:Parallel IO Configurations
+#
+CONFIG_PARLIO_TX_ISR_HANDLER_IN_IRAM=y
+CONFIG_PARLIO_RX_ISR_HANDLER_IN_IRAM=y
+# CONFIG_PARLIO_TX_ISR_CACHE_SAFE is not set
+# CONFIG_PARLIO_RX_ISR_CACHE_SAFE is not set
+CONFIG_PARLIO_OBJ_CACHE_SAFE=y
+# CONFIG_PARLIO_ENABLE_DEBUG_LOG is not set
+# CONFIG_PARLIO_ISR_IRAM_SAFE is not set
+# end of ESP-Driver:Parallel IO Configurations
+
+#
+# ESP-Driver:PCNT Configurations
+#
+# CONFIG_PCNT_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_PCNT_ISR_IRAM_SAFE is not set
+# CONFIG_PCNT_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:PCNT Configurations
+
+#
+# ESP-Driver:RMT Configurations
+#
+CONFIG_RMT_ENCODER_FUNC_IN_IRAM=y
+CONFIG_RMT_TX_ISR_HANDLER_IN_IRAM=y
+CONFIG_RMT_RX_ISR_HANDLER_IN_IRAM=y
+# CONFIG_RMT_RECV_FUNC_IN_IRAM is not set
+# CONFIG_RMT_TX_ISR_CACHE_SAFE is not set
+# CONFIG_RMT_RX_ISR_CACHE_SAFE is not set
+CONFIG_RMT_OBJ_CACHE_SAFE=y
+# CONFIG_RMT_ENABLE_DEBUG_LOG is not set
+# CONFIG_RMT_ISR_IRAM_SAFE is not set
+# end of ESP-Driver:RMT Configurations
+
+#
+# ESP-Driver:Sigma Delta Modulator Configurations
+#
+# CONFIG_SDM_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_SDM_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:Sigma Delta Modulator Configurations
+
+#
+# ESP-Driver:SPI Configurations
+#
+# CONFIG_SPI_MASTER_IN_IRAM is not set
+CONFIG_SPI_MASTER_ISR_IN_IRAM=y
+# CONFIG_SPI_SLAVE_IN_IRAM is not set
+CONFIG_SPI_SLAVE_ISR_IN_IRAM=y
+# end of ESP-Driver:SPI Configurations
+
+#
+# ESP-Driver:Temperature Sensor Configurations
+#
+# CONFIG_TEMP_SENSOR_ENABLE_DEBUG_LOG is not set
+# CONFIG_TEMP_SENSOR_ISR_IRAM_SAFE is not set
+# end of ESP-Driver:Temperature Sensor Configurations
+
+#
+# ESP-Driver:TWAI Configurations
+#
+# CONFIG_TWAI_ISR_IN_IRAM is not set
+# CONFIG_TWAI_ISR_CACHE_SAFE is not set
+# CONFIG_TWAI_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:TWAI Configurations
+
+#
 # ESP-Driver:UART Configurations
 #
 # CONFIG_UART_ISR_IN_IRAM is not set
@@ -740,6 +915,19 @@ CONFIG_USJ_ENABLE_USB_SERIAL_JTAG=y
 CONFIG_ESP_EVENT_POST_FROM_ISR=y
 CONFIG_ESP_EVENT_POST_FROM_IRAM_ISR=y
 # end of Event Loop Library
+
+#
+# HTTP Server
+#
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+CONFIG_HTTPD_MAX_URI_LEN=512
+CONFIG_HTTPD_ERR_RESP_NO_DELAY=y
+CONFIG_HTTPD_PURGE_BUF_LEN=32
+# CONFIG_HTTPD_LOG_PURGE_DATA is not set
+# CONFIG_HTTPD_WS_SUPPORT is not set
+# CONFIG_HTTPD_QUEUE_WORK_BLOCKING is not set
+CONFIG_HTTPD_SERVER_EVENT_POST_TIMEOUT=2000
+# end of HTTP Server
 
 #
 # Hardware Settings
@@ -822,7 +1010,7 @@ CONFIG_ESP_REGI2C_CTRL_FUNC_IN_IRAM=y
 #
 # GDMA Configurations
 #
-# CONFIG_GDMA_CTRL_FUNC_IN_IRAM is not set
+CONFIG_GDMA_CTRL_FUNC_IN_IRAM=y
 CONFIG_GDMA_ISR_HANDLER_IN_IRAM=y
 CONFIG_GDMA_OBJ_DRAM_SAFE=y
 # CONFIG_GDMA_ENABLE_DEBUG_LOG is not set
@@ -855,6 +1043,7 @@ CONFIG_ESP_BROWNOUT_USE_INTR=y
 # end of Brownout Detector
 # end of Power Supplier
 
+CONFIG_ESP_SPI_BUS_LOCK_ISR_FUNCS_IN_IRAM=y
 CONFIG_ESP_INTR_IN_IRAM=y
 # end of Hardware Settings
 
@@ -1614,9 +1803,9 @@ CONFIG_PTHREAD_TASK_NAME_DEFAULT="pthread"
 #
 # MMU Config
 #
-CONFIG_MMU_PAGE_SIZE_32KB=y
-CONFIG_MMU_PAGE_MODE="32KB"
-CONFIG_MMU_PAGE_SIZE=0x8000
+CONFIG_MMU_PAGE_SIZE_64KB=y
+CONFIG_MMU_PAGE_MODE="64KB"
+CONFIG_MMU_PAGE_SIZE=0x10000
 # end of MMU Config
 
 #
@@ -1737,6 +1926,8 @@ CONFIG_STACK_CHECK_NONE=y
 # CONFIG_WARN_WRITE_STRINGS is not set
 # CONFIG_EXTERNAL_COEX_ENABLE is not set
 # CONFIG_ESP_WIFI_EXTERNAL_COEXIST_ENABLE is not set
+# CONFIG_GPTIMER_ISR_IRAM_SAFE is not set
+# CONFIG_MCPWM_ISR_IRAM_SAFE is not set
 # CONFIG_EVENT_LOOP_PROFILING is not set
 CONFIG_POST_EVENTS_FROM_ISR=y
 CONFIG_POST_EVENTS_FROM_IRAM_ISR=y
