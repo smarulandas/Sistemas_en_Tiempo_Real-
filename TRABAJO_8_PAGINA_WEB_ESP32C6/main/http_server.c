@@ -334,6 +334,75 @@ static esp_err_t http_server_get_dht_sensor_readings_json_handler(httpd_req_t *r
 	return ESP_OK;
 }
 
+static void http_server_get_form_value(const char *body, const char *key, char *output, size_t output_size)
+{
+    char search_key[32];
+    snprintf(search_key, sizeof(search_key), "%s=", key);
+
+    char *start = strstr(body, search_key);
+
+    if (start == NULL)
+    {
+        output[0] = '\0';
+        return;
+    }
+
+    start += strlen(search_key);
+
+    char *end = strchr(start, '&');
+
+    size_t value_len;
+
+    if (end == NULL)
+    {
+        value_len = strlen(start);
+    }
+    else
+    {
+        value_len = end - start;
+    }
+
+    if (value_len >= output_size)
+    {
+        value_len = output_size - 1;
+    }
+
+    strncpy(output, start, value_len);
+    output[value_len] = '\0';
+}
+
+static esp_err_t http_server_wifi_handler(httpd_req_t *req)
+{
+    ESP_LOGI(TAG, "/wifi requested");
+
+    char content[128];
+    char ssid[33];
+    char password[65];
+
+    int received = httpd_req_recv(req, content, MIN(req->content_len, sizeof(content) - 1));
+
+    if (received <= 0)
+    {
+        ESP_LOGE(TAG, "No se recibieron datos WiFi");
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_send(req, "{\"status\":\"error\",\"message\":\"No se recibieron datos\"}", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+
+    content[received] = '\0';
+
+    http_server_get_form_value(content, "ssid", ssid, sizeof(ssid));
+    http_server_get_form_value(content, "password", password, sizeof(password));
+
+    ESP_LOGI(TAG, "SSID recibido: %s", ssid);
+    ESP_LOGI(TAG, "Password recibido: %s", password);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, "{\"status\":\"ok\",\"message\":\"Credenciales WiFi recibidas\"}", HTTPD_RESP_USE_STRLEN);
+
+    return ESP_OK;
+}
+
 static esp_err_t http_server_toogle_led_handler(httpd_req_t *req)
 {
 	ESP_LOGI(TAG, "/toogle_led.json requested");
@@ -530,6 +599,15 @@ static httpd_handle_t http_server_configure(void)
 		};
 		httpd_register_uri_handler(http_server_handle, &dht_sensor_json);
 		
+		// register wifi handler
+		httpd_uri_t wifi = {
+				.uri = "/wifi",
+				.method = HTTP_POST,
+				.handler = http_server_wifi_handler,
+				.user_ctx = NULL
+		};
+		httpd_register_uri_handler(http_server_handle, &wifi);
+
 		// register toogle_led handler
 		httpd_uri_t toogle_led = {
 				.uri = "/toogle_led.json",
