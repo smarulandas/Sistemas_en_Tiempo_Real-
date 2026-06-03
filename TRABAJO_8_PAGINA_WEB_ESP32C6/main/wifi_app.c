@@ -22,6 +22,11 @@
 // Tag used for ESP serial console messages
 static const char TAG [] = "wifi_app";
 
+static int g_wifi_connect_status = WIFI_CONNECT_STATUS_IDLE;
+static int g_wifi_retry_count = 0;
+static char g_wifi_connected_ssid[MAX_SSID_LENGTH + 1] = "";
+static char g_wifi_sta_ip[16] = "--";
+
 // Queue handle used to manipulate the main queue of events
 static QueueHandle_t wifi_app_queue_handle;
 
@@ -36,6 +41,62 @@ esp_netif_t* esp_netif_ap  = NULL;
  * @param event_id the id fo the event to register the handler for
  * @param event_data event data
  */
+
+int wifi_app_get_wifi_connect_status(void)
+{
+    return g_wifi_connect_status;
+}
+
+const char *wifi_app_get_connected_ssid(void)
+{
+    return g_wifi_connected_ssid;
+}
+
+const char *wifi_app_get_sta_ip(void)
+{
+    return g_wifi_sta_ip;
+}
+
+void wifi_app_connect_sta(const char *ssid, const char *password)
+{
+    wifi_config_t sta_config;
+    memset(&sta_config, 0, sizeof(sta_config));
+
+    snprintf((char *)sta_config.sta.ssid, sizeof(sta_config.sta.ssid), "%s", ssid);
+    snprintf((char *)sta_config.sta.password, sizeof(sta_config.sta.password), "%s", password);
+
+    snprintf(g_wifi_connected_ssid, sizeof(g_wifi_connected_ssid), "%s", ssid);
+    snprintf(g_wifi_sta_ip, sizeof(g_wifi_sta_ip), "--");
+
+    g_wifi_retry_count = 0;
+    g_wifi_connect_status = WIFI_CONNECT_STATUS_CONNECTING;
+
+    ESP_LOGI(TAG, "Intentando conectar Station a SSID: %s", g_wifi_connected_ssid);
+
+    esp_wifi_disconnect();
+
+    esp_err_t config_result = esp_wifi_set_config(ESP_IF_WIFI_STA, &sta_config);
+
+    if (config_result != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error configurando Station: %s", esp_err_to_name(config_result));
+        g_wifi_connect_status = WIFI_CONNECT_STATUS_FAILED;
+        return;
+    }
+
+    esp_err_t connect_result = esp_wifi_connect();
+
+    if (connect_result != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error iniciando conexion Station: %s", esp_err_to_name(connect_result));
+        g_wifi_connect_status = WIFI_CONNECT_STATUS_FAILED;
+        return;
+    }
+
+    ESP_LOGI(TAG, "Conexion Station iniciada, esperando IP...");
+}
+
+
 static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
 	if (event_base == WIFI_EVENT)
@@ -64,10 +125,27 @@ static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32
 
 			case WIFI_EVENT_STA_CONNECTED:
 				ESP_LOGI(TAG, "WIFI_EVENT_STA_CONNECTED");
+				ESP_LOGI(TAG, "Station conectado al AP externo, esperando direccion IP...");
 				break;
 
 			case WIFI_EVENT_STA_DISCONNECTED:
 				ESP_LOGI(TAG, "WIFI_EVENT_STA_DISCONNECTED");
+
+				if (g_wifi_connect_status == WIFI_CONNECT_STATUS_CONNECTING &&
+					g_wifi_retry_count < MAX_CONNECTION_RETRIES)
+				{
+					g_wifi_retry_count++;
+					ESP_LOGI(TAG, "Reintentando conexion Station (%d/%d)...",
+							g_wifi_retry_count, MAX_CONNECTION_RETRIES);
+					esp_wifi_connect();
+				}
+				else
+				{
+					g_wifi_connect_status = WIFI_CONNECT_STATUS_FAILED;
+					snprintf(g_wifi_sta_ip, sizeof(g_wifi_sta_ip), "--");
+					ESP_LOGW(TAG, "No se pudo conectar a la red externa: %s", g_wifi_connected_ssid);
+				}
+
 				break;
 		}
 	}
@@ -76,8 +154,20 @@ static void wifi_app_event_handler(void *arg, esp_event_base_t event_base, int32
 		switch (event_id)
 		{
 			case IP_EVENT_STA_GOT_IP:
+			{
+				ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+
+				snprintf(g_wifi_sta_ip, sizeof(g_wifi_sta_ip), IPSTR, IP2STR(&event->ip_info.ip));
+
+				g_wifi_connect_status = WIFI_CONNECT_STATUS_SUCCESS;
+				g_wifi_retry_count = 0;
+
 				ESP_LOGI(TAG, "IP_EVENT_STA_GOT_IP");
+				ESP_LOGI(TAG, "Conectado a red externa: %s", g_wifi_connected_ssid);
+				ESP_LOGI(TAG, "IP Station: %s", g_wifi_sta_ip);
+
 				break;
+			}
 		}
 	}
 }

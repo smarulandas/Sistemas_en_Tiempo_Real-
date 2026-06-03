@@ -396,9 +396,11 @@ static esp_err_t http_server_wifi_handler(httpd_req_t *req)
 
     ESP_LOGI(TAG, "SSID recibido: %s", ssid);
     ESP_LOGI(TAG, "Password recibido: %s", password);
+	
+	wifi_app_connect_sta(ssid, password);
 
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, "{\"status\":\"ok\",\"message\":\"Credenciales WiFi recibidas\"}", HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, "{\"status\":\"ok\",\"message\":\"Intentando conectar Station\"}", HTTPD_RESP_USE_STRLEN);
 
     return ESP_OK;
 }

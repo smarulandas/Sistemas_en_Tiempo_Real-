@@ -76,6 +76,32 @@ void wifi_app_start(void);
  */
 wifi_config_t* wifi_app_get_wifi_config(void);
 
+// WiFi Station connection status
+#define WIFI_CONNECT_STATUS_IDLE          0
+#define WIFI_CONNECT_STATUS_CONNECTING    1
+#define WIFI_CONNECT_STATUS_FAILED        2
+#define WIFI_CONNECT_STATUS_SUCCESS       3
+
+/**
+ * Connects the ESP32-C6 as Station to an external WiFi network.
+ */
+void wifi_app_connect_sta(const char *ssid, const char *password);
+
+/**
+ * Gets the current Station connection status.
+ */
+int wifi_app_get_wifi_connect_status(void);
+
+/**
+ * Gets the SSID currently used by Station mode.
+ */
+const char *wifi_app_get_connected_ssid(void);
+
+/**
+ * Gets the Station IP address.
+ */
+const char *wifi_app_get_sta_ip(void);
+
 /**
  * Sets the callback function.
  */
