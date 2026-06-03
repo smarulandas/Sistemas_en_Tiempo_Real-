@@ -649,10 +649,10 @@ static httpd_handle_t http_server_configure(void)
 		httpd_uri_t toogle_uart = {
 				.uri = "/uart_off.json",
 				.method = HTTP_POST,
-				.handler = http_server_toogle_led_handler,
+				.handler = http_server_toogle_uart_handler,
 				.user_ctx = NULL
 		};
-		httpd_register_uri_handler(http_server_handle, &toogle_led);
+		httpd_register_uri_handler(http_server_handle, &toogle_uart);
 
 		// register rgb_receiver handler
 		/*httpd_uri_t rgb_values = {
