@@ -416,3 +416,32 @@ input[type="number"]::-webkit-outer-spin-button {
         font-size: 40px;
     }
 }
+
+.wifi-status-box {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(248, 250, 252, 0.95);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.wifi-status-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#wifi-status-text {
+    font-size: 15px;
+    color: #0f172a;
+}
+
+#wifi-ip-text {
+    font-size: 13px;
+    color: #64748b;
+}

@@ -396,11 +396,27 @@ static esp_err_t http_server_wifi_handler(httpd_req_t *req)
 
     ESP_LOGI(TAG, "SSID recibido: %s", ssid);
     ESP_LOGI(TAG, "Password recibido: %s", password);
-	
+
 	wifi_app_connect_sta(ssid, password);
 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, "{\"status\":\"ok\",\"message\":\"Intentando conectar Station\"}", HTTPD_RESP_USE_STRLEN);
+
+    return ESP_OK;
+}
+
+static esp_err_t http_server_wifi_status_handler(httpd_req_t *req)
+{
+    char response[256];
+
+    snprintf(response, sizeof(response),
+             "{\"status\":%d,\"ssid\":\"%s\",\"sta_ip\":\"%s\"}",
+             wifi_app_get_wifi_connect_status(),
+             wifi_app_get_connected_ssid(),
+             wifi_app_get_sta_ip());
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, response, HTTPD_RESP_USE_STRLEN);
 
     return ESP_OK;
 }
@@ -609,6 +625,15 @@ static httpd_handle_t http_server_configure(void)
 				.user_ctx = NULL
 		};
 		httpd_register_uri_handler(http_server_handle, &wifi);
+
+		// register wifi status handler
+		httpd_uri_t wifi_status = {
+				.uri = "/wifiStatus",
+				.method = HTTP_GET,
+				.handler = http_server_wifi_status_handler,
+				.user_ctx = NULL
+		};
+		httpd_register_uri_handler(http_server_handle, &wifi_status);
 
 		// register toogle_led handler
 		httpd_uri_t toogle_led = {

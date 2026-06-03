@@ -9,6 +9,13 @@ var wifiConnectInterval = null;
  * Initialize functions here.
  */
 $(document).ready(function(){
+	$("#wifi-form").on("submit", function(event){
+		event.preventDefault();
+		sendWifiCredentials();
+	});
+
+	startWifiStatusInterval();
+
 	getUpdateStatus();
 	startDHTSensorInterval();
 	print("ready")
@@ -25,6 +32,8 @@ $(document).ready(function(){
 	$("#apagar_uart").on("click", function(){
 		turn_off_uart();
 	}); 
+	
+
 
 });   
 
@@ -280,6 +289,67 @@ function activate_listener( used_id ){
 
 */
 
+function sendWifiCredentials()
+{
+    var ssid = $("#ssid").val();
+    var password = $("#password").val();
+
+    $("#system-status").text("Conectando...");
+    $("#wifi-status-text").text("Conectando a: " + ssid);
+    $("#wifi-ip-text").text("Station: esperando IP...");
+
+    $.ajax({
+        url: "/wifi",
+        method: "POST",
+        data: {
+            ssid: ssid,
+            password: password
+        },
+        success: function() {
+            getWifiStatus();
+        },
+        error: function() {
+            $("#system-status").text("Error");
+            $("#wifi-status-text").text("No se pudieron enviar las credenciales");
+            $("#wifi-ip-text").text("Station: sin conexión");
+        }
+    });
+}
+
+function getWifiStatus()
+{
+    $.getJSON("/wifiStatus", function(data) {
+        if (data.status == 1)
+        {
+            $("#system-status").text("Conectando...");
+            $("#wifi-status-text").text("Conectando a: " + data.ssid);
+            $("#wifi-ip-text").text("Station: esperando IP...");
+        }
+        else if (data.status == 2)
+        {
+            $("#system-status").text("Error de conexión");
+            $("#wifi-status-text").text("No se pudo conectar a: " + data.ssid);
+            $("#wifi-ip-text").text("Station: sin conexión");
+        }
+        else if (data.status == 3)
+        {
+            $("#system-status").text("Conectado");
+            $("#wifi-status-text").text("Conectado a: " + data.ssid);
+            $("#wifi-ip-text").text("IP Station: " + data.sta_ip);
+        }
+        else
+        {
+            $("#system-status").text("Interfaz lista");
+            $("#wifi-status-text").text("AP activo: ESP32C6_SAMU_AP");
+            $("#wifi-ip-text").text("Station: sin conexión");
+        }
+    });
+}
+
+function startWifiStatusInterval()
+{
+    setInterval(getWifiStatus, 3000);
+}
 
 
 

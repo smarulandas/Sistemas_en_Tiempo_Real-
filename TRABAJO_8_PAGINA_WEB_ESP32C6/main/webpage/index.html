@@ -31,7 +31,7 @@
 
             <div class="status-card">
                 <p class="status-label">Estado del sistema</p>
-                <span class="status-value">Interfaz lista</span>
+                <span id="system-status" class="status-value">Interfaz lista</span>
             </div>
 
         </section>
@@ -50,7 +50,7 @@
                     Ingresa el nombre de la red y la contraseña para conectar el ESP32-C6.
                 </p>
 
-                <form id="wifi-form" class="form-card" action="/wifi" method="POST">
+                <form id="wifi-form" class="form-card">
 
                     <label for="ssid">SSID</label>
                     <input
@@ -74,6 +74,12 @@
                     <button type="submit" class="btn btn-primary">
                         Enviar WiFi
                     </button>
+                    
+                    <div class="wifi-status-box">
+                        <span class="wifi-status-label">Estado WiFi</span>
+                        <strong id="wifi-status-text">AP activo: ESP32C6_SAMU_AP</strong>
+                        <small id="wifi-ip-text">Station: sin conexión</small>
+                    </div>
 
                 </form>
 
@@ -195,6 +201,7 @@
         </section>
 
     </main>
-
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
